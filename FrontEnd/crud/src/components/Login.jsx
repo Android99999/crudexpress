@@ -7,6 +7,8 @@ function Login() {
     const emailRef = useRef(null);
     const passwordRef = useRef (null);
 
+    const [user, setUser] = useState([])
+
 
     axios.defaults.withCredentials = true;
 
@@ -31,17 +33,14 @@ function Login() {
     const handleSubmit = async (e) => {
 
         e.preventDefault()
-        console.log(value)
+       
         try {
             const response = await axios.post('http://localhost:8080/login',value);
-            console.log(response);
-            console.log(response.data.isLoggedIn)
-            if(response.data.isLoggedIn){
-
-                emailRef.current.value = "";
-                passwordRef.current.value = "";
+           
+            if(response.data.message === "Login successful"){
+                console.log(response.data[0]);
+                alert("STOP")
                 navigate('/')
-
             }else{
 
                 alert("NO CREDENTIALS!")

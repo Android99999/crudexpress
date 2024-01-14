@@ -5,10 +5,13 @@ import session from "express-session"
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import helmet from "helmet";
+import jwt from "jsonwebtoken"
+import { authMiddleware } from "./authMiddleware.js";
+
 
 const app = express();
-
 const PORT = 8080;
+const secretKey = "Blyrae01"
 
 
 app.use(express.json());
@@ -120,12 +123,24 @@ app.post('/login', async (req, res) => {
       req.body.password
     ]);
     
-    
+   
 
     if(result[0].length > 0){
-      res.json({isLoggedIn: true, name: result[0][0].name})
+      // res.json({isLoggedIn: true, name: result[0][0].name})
+      const {username} = result[0][0].name;
+      console.log(result[0][0].name)
+      const token = jwt.sign({username}, secretKey, {expiresIn: "1h"})
+     
+      res.cookie('session', token, {
+        httpOnly: 'true',
+        secure: false,
+        sameSite: 'Lax',
+        expires: new Date(Date.now() + 3600000),
+      });
+
+      res.status(200).json({...result[0], message: 'Login successful' });
     }else{
-      res.json({isLoggedIn: false})
+      res.status(401).json({ message: 'Invalid credentials' });
     }
     
    
@@ -141,6 +156,22 @@ app.post('/login', async (req, res) => {
 // app.get('/', (req, res) => {
 //   if(req.)
 // })
+
+app.get('/protected', authMiddleware, (req, res) => {
+  
+
+  if (req.user) {
+    console.log("IFs")
+    res.json({ 
+      isValid: true,
+      message: `Helloooo, ${req.user.username}! This is a protected route.` 
+    });
+    
+  } else {
+    console.log("ELSE")
+    res.status(401).json({ message: 'Unauthorized Access ELSE'});
+  }
+});
 
 
 
